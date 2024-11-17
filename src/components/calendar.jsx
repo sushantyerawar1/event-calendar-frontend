@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -15,6 +15,18 @@ import {
 import { styled } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+
+
+const NavigationBar = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing(2),
+    borderBottom: `1px solid ${theme.palette.divider}`,
+}));
+
 
 const CalendarContainer = styled(Paper)(({ theme }) => ({
     width: '100%',
@@ -63,23 +75,44 @@ const EventItem = styled(Paper)(({ theme }) => ({
     }
 }));
 
-const Calendar = ({ events, onEditEvent, onDeleteEvent, email }) => {
+const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, calculateWeekDates, dateRange, setDateRange }) => {
     const [selectedEvent, setSelectedEvent] = useState(null)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [error, setError] = useState("");
     const [currentTag, setCurrentTag] = useState("");
+    const [weekOffset, setWeekOffset] = useState(0);
+
+
+    useEffect(() => {
+        const { startDate, endDate } = calculateWeekDates(weekOffset);
+        setDateRange({ startDate, endDate });
+        onWeekChange();
+    }, [weekOffset]);
+
+    const handlePrevWeek = () => {
+        setWeekOffset(prev => prev - 1);
+    };
+
+    const handleNextWeek = () => {
+        setWeekOffset(prev => prev + 1);
+    };
+
+    const formatDateRange = () => {
+        if (!dateRange.startDate || !dateRange.endDate) return '';
+
+        return `${new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric'
+        }).format(dateRange.startDate)} - ${new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        }).format(dateRange.endDate)}`;
+    };
 
     const getWeekDates = () => {
-        const today = new Date();
-        const dates = [];
-        const start = today.getDate() - today.getDay();
-
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(start + i);
-            dates.push(date);
-        }
-        return dates;
+        const { weekDates } = calculateWeekDates(weekOffset);
+        return weekDates;
     };
 
     const hours = Array.from({ length: 24 }, (_, i) => {
@@ -184,6 +217,18 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email }) => {
 
     return (
         <CalendarContainer elevation={0}>
+            <NavigationBar>
+                <IconButton onClick={handlePrevWeek}>
+                    <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="h6">
+                    {formatDateRange()}
+                </Typography>
+                <IconButton onClick={handleNextWeek}>
+                    <ChevronRightIcon />
+                </IconButton>
+            </NavigationBar>
+
             <Box display="flex" borderBottom={1} borderColor="divider">
                 <Box width={80} flexShrink={0} />
                 {getWeekDates().map((date, index) => (

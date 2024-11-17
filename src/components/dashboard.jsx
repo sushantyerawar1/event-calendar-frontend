@@ -12,11 +12,34 @@ const Dashboard = ({ email, userName }) => {
     const [events, setEvents] = useState([]);
     const [users, setUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [showPopup, setShowPopup] = useState(false);
     const [googleEvents, setGoogleEvents] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [combinedEvents, setCombinedEvents] = useState([]);
     const isFetchedFromGoogle = useSelector((state) => state.toggle.isFetchedFromGoogle);
+    const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
+
+    const calculateWeekDates = (offset = 0) => {
+        const current = new Date();
+        const currentDay = current.getDay();
+        const sunday = new Date(current);
+        sunday.setDate(current.getDate() - currentDay + (offset * 7));
+        sunday.setHours(0, 0, 0, 0);
+
+        const saturday = new Date(sunday);
+        saturday.setDate(sunday.getDate() + 6);
+        saturday.setHours(23, 59, 59, 999);
+
+        return {
+            startDate: sunday,
+            endDate: saturday,
+            weekDates: Array.from({ length: 7 }, (_, i) => {
+                const date = new Date(sunday);
+                date.setDate(sunday.getDate() + i);
+                return date;
+            })
+        };
+    };
+
     const dispatch = useDispatch();
     const toggleFeatureFlag = () => {
         if (isFetchedFromGoogle) setGoogleEvents([]);
@@ -87,7 +110,9 @@ const Dashboard = ({ email, userName }) => {
             const { data, status } = await axios.post(
                 `${APP_URL}api/events/getevents`,
                 {
-                    emailIds: selectedUsers.length ? selectedUsers : [email]
+                    emailIds: selectedUsers.length ? selectedUsers : [email],
+                    startDate: dateRange.startDate,
+                    endDate: dateRange.endDate
                 },
                 config
             );
@@ -100,7 +125,7 @@ const Dashboard = ({ email, userName }) => {
     useEffect(() => {
         fetchEvents();
         getCombineEvents();
-    }, [selectedUsers])
+    }, [selectedUsers, dateRange])
 
 
     const handleCreateEvent = async (newEvent) => {
@@ -123,7 +148,6 @@ const Dashboard = ({ email, userName }) => {
                 config
             );
 
-            setShowPopup(false);
             fetchEvents();
 
         } catch (error) {
@@ -298,6 +322,10 @@ const Dashboard = ({ email, userName }) => {
                 onEditEvent={handleEditEvent}
                 onDeleteEvent={handleDeleteEvent}
                 email={email}
+                calculateWeekDates={calculateWeekDates}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                onWeekChange={fetchEvents}
             />
             {
                 modalVisible &&

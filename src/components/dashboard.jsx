@@ -125,6 +125,7 @@ const Dashboard = ({ email, userName }) => {
     useEffect(() => {
         fetchEvents();
         getCombineEvents();
+        if (isFetchedFromGoogle == true) toggleFeatureFlag()
     }, [selectedUsers, dateRange])
 
 
@@ -173,6 +174,7 @@ const Dashboard = ({ email, userName }) => {
     const getCombineEvents = () => {
 
         const istOffset = 5.5 * 60 * 60 * 1000;
+        // const istOffset = 0;
         const newEvents = [];
         if (selectedUsers.length == 0) {
             for (let event of googleEvents) {
@@ -191,7 +193,7 @@ const Dashboard = ({ email, userName }) => {
                     newEvents.push({
                         startTime: eventStartDateTime,
                         endTime: eventEndDateTime,
-                        eventTitle: event.description || "No Description",
+                        eventTitle: event.summary || "No Description",
                         _id: event.id,
                         tags: [],
                         isGoogleEvent: true
@@ -221,7 +223,10 @@ const Dashboard = ({ email, userName }) => {
     const fetchSync = useGoogleLogin({
         onSuccess: async (response) => {
             try {
+                setGoogleEvents([])
                 const accessToken = response.access_token;
+                const startDateUTC = new Date(new Date(dateRange.startDate).toISOString());
+                const endDateUTC = new Date(new Date(dateRange.endDate).toISOString());
 
                 const res = await axios.get(
                     "https://www.googleapis.com/calendar/v3/calendars/primary/events",
@@ -232,13 +237,15 @@ const Dashboard = ({ email, userName }) => {
                         params: {
                             singleEvents: true,
                             orderBy: "startTime",
-                            maxResults: 2500
+                            maxResults: 2500,
+                            timeMin: startDateUTC.toISOString(),
+                            timeMax: endDateUTC.toISOString()
                         },
                     }
                 );
 
                 setGoogleEvents(res.data.items);
-                toggleFeatureFlag();
+                if (isFetchedFromGoogle != true) toggleFeatureFlag();
             } catch (error) {
                 console.error("Error fetching Google Calendar events", error);
             }
@@ -248,6 +255,11 @@ const Dashboard = ({ email, userName }) => {
         },
         scope: "https://www.googleapis.com/auth/calendar.readonly",
     });
+
+
+    useEffect(() => {
+        if (isFetchedFromGoogle) { fetchSync(); }
+    }, [dateRange])
 
 
     const handleDeleteEvent = async (eventId) => {
@@ -304,8 +316,9 @@ const Dashboard = ({ email, userName }) => {
                         </button>
                         :
                         <button
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                            className={selectedUsers.length ? 'bg-gray-500 text-white px-4 py-2 rounded' : 'bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600'}
                             onClick={fetchSync}
+                            disabled={selectedUsers.length}
                         >
                             Sync
                         </button>

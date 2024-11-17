@@ -356,7 +356,7 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
                             type="datetime-local"
                             fullWidth
                             InputLabelProps={{ shrink: true }}
-                            value={selectedEvent?.startTime ? new Date(selectedEvent.startTime).toISOString().slice(0, 16) : ''}
+                            value={selectedEvent?.startTime ? new Date(new Date(selectedEvent.startTime).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 16) : ''}
                             onChange={(e) => setSelectedEvent(prev => ({
                                 ...prev,
                                 startTime: new Date(e.target.value).toISOString()
@@ -368,7 +368,7 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
                             type="datetime-local"
                             fullWidth
                             InputLabelProps={{ shrink: true }}
-                            value={selectedEvent?.endTime ? new Date(selectedEvent.endTime).toISOString().slice(0, 16) : ''}
+                            value={selectedEvent?.endTime ? new Date(new Date(selectedEvent.endTime).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 16) : ''}
                             onChange={(e) => setSelectedEvent(prev => ({
                                 ...prev,
                                 endTime: new Date(e.target.value).toISOString()

@@ -73,6 +73,9 @@ const Login = () => {
       }
 
     } catch (error) {
+      setFormData({ email: '', password: '' })
+      if (error.status == 404) alert("User not found");
+      if (error.status == 401) alert("Invalid password");
       console.log(error.response.data.message)
     }
   };

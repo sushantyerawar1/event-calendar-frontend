@@ -182,8 +182,6 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email }) => {
         setError("");
     };
 
-    console.log(email != selectedEvent?.emailId, selectedEvent?.emailId, selectedEvent)
-
     return (
         <CalendarContainer elevation={0}>
             <Box display="flex" borderBottom={1} borderColor="divider">

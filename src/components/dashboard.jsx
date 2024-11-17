@@ -190,9 +190,9 @@ const Dashboard = ({ email, userName }) => {
 
 
     useEffect(() => {
-        setCombinedEvents([])
+        setCombinedEvents([]);
         getCombineEvents();
-    }, [googleEvents, events])
+    }, [googleEvents, events, selectedUsers])
 
     const fetchSync = useGoogleLogin({
         onSuccess: async (response) => {

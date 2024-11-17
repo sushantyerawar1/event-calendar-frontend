@@ -77,7 +77,9 @@ const Signup = () => {
       }
 
     } catch (error) {
-      console.log(error.response.data.message)
+      setFormData({ username: '', email: '', password: '' })
+      if (error.status) alert("User already exist")
+      console.log(error, error.response.data.message)
     }
   };
 

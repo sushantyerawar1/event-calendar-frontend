@@ -115,9 +115,7 @@ const Dashboard = ({ email, userName }) => {
                 },
                 config
             );
-            if (status == 200) {
-                setEvents(data.events);
-            }
+            setEvents(data.events);
         } catch (error) {
             console.log(error.response.data.message)
         }

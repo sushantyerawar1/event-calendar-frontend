@@ -27,6 +27,30 @@ const NavigationBar = styled(Box)(({ theme }) => ({
     borderBottom: `1px solid ${theme.palette.divider}`,
 }));
 
+const EventItem = styled(Paper)(({ theme }) => ({
+    position: 'absolute',
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.primary.light,
+    color: theme.palette.primary.contrastText,
+    borderRadius: theme.shape.borderRadius,
+    cursor: 'pointer',
+    overflow: 'hidden',
+    transition: 'all 0.2s',
+    '&:hover': {
+        backgroundColor: theme.palette.primary.main,
+        boxShadow: theme.shadows[4],
+        zIndex: 1000
+    }
+}));
+
+
+const CollisionEventItem = styled(EventItem)(({ theme }) => ({
+    backgroundColor: theme.palette.error.light,
+    '&:hover': {
+        backgroundColor: theme.palette.error.main,
+    }
+}));
+
 
 const CalendarContainer = styled(Paper)(({ theme }) => ({
     width: '100%',
@@ -59,21 +83,6 @@ const GridCell = styled(Box)(({ theme }) => ({
     flex: 1
 }));
 
-const EventItem = styled(Paper)(({ theme }) => ({
-    position: 'absolute',
-    padding: theme.spacing(1),
-    backgroundColor: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText,
-    borderRadius: theme.shape.borderRadius,
-    cursor: 'pointer',
-    overflow: 'hidden',
-    transition: 'all 0.2s',
-    '&:hover': {
-        backgroundColor: theme.palette.primary.main,
-        boxShadow: theme.shadows[4],
-        zIndex: 1000
-    }
-}));
 
 const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, calculateWeekDates, dateRange, setDateRange }) => {
     const [selectedEvent, setSelectedEvent] = useState(null)
@@ -81,6 +90,34 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
     const [error, setError] = useState("");
     const [currentTag, setCurrentTag] = useState("");
     const [weekOffset, setWeekOffset] = useState(0);
+
+
+    const checkEventCollision = (event, allEvents) => {
+        return allEvents.some(otherEvent =>
+            otherEvent._id !== event._id &&
+            new Date(event.startTime) < new Date(otherEvent.endTime) &&
+            new Date(event.endTime) > new Date(otherEvent.startTime)
+        );
+    };
+
+    const getEventStyle = (event) => {
+        const startDate = new Date(event.startTime);
+        const endDate = new Date(event.endTime);
+
+        const dayOfWeek = startDate.getDay();
+        const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+        const duration = (endDate - startDate) / (1000 * 60 * 60);
+
+        const topPosition = startHour * 60;
+        const height = duration * 60;
+
+        return {
+            top: `${topPosition}px`,
+            left: `${dayOfWeek * 14.28}%`,
+            height: `${height}px`,
+            width: '13%'
+        };
+    };
 
 
     useEffect(() => {
@@ -136,25 +173,6 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
         });
     };
 
-    const getEventStyle = (event) => {
-        const startDate = new Date(event.startTime);
-        const endDate = new Date(event.endTime);
-
-        const dayOfWeek = startDate.getDay();
-        const startHour = startDate.getHours() + startDate.getMinutes() / 60;
-        const duration = (endDate - startDate) / (1000 * 60 * 60);
-
-        const topPosition = startHour * 60;
-        const height = duration * 60;
-
-        return {
-            top: `${topPosition}px`,
-            left: `${dayOfWeek * 14.28}%`,
-            height: `${height}px`,
-            width: '13%'
-        };
-    };
-
     const handleEventClick = (event) => {
         setSelectedEvent(event);
         setIsEditDialogOpen(true);
@@ -163,6 +181,14 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
     const handleSave = () => {
         onEditEvent(selectedEvent);
         setIsEditDialogOpen(false);
+    };
+
+    const findOverlappingEvents = (event, allEvents) => {
+        return allEvents.filter(otherEvent =>
+            otherEvent._id !== event._id &&
+            new Date(event.startTime) < new Date(otherEvent.endTime) &&
+            new Date(event.endTime) > new Date(otherEvent.startTime)
+        );
     };
 
 
@@ -269,65 +295,89 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
                         />
                     ))}
 
-                    {events.map((event) => (
-                        <Tooltip
-                            key={event._id}
-                            title={`${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}
-                            arrow
-                        >
-                            <EventItem
-                                style={getEventStyle(event)}
-                                onClick={() => handleEventClick(event)}
-                            >
-                                <Typography variant="caption" fontWeight="bold">
-                                    {event.eventTitle}
+                    {events.map((event) => {
+                        const overlappingEvents = findOverlappingEvents(event, events);
+                        const hasCollision = overlappingEvents.length > 0;
+                        const EventComponent = hasCollision ? CollisionEventItem : EventItem;
+                        const tooltipContent = hasCollision ? (
+                            <Box>
+                                <Typography variant="caption" display="block">
+                                    {`${event.eventTitle} :${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}
                                 </Typography>
-                                <Box sx={{
-                                    position: 'absolute',
-                                    right: 2,
-                                    top: 2,
-                                    display: 'flex',
-                                    gap: '4px'
-                                }}>
-                                    {(!event.isGoogleEvent && event.emailId == email) &&
-                                        <>
-                                            <IconButton
-                                                size="small"
-                                                sx={{
-                                                    color: 'inherit',
-                                                    opacity: 0.7,
-                                                    '&:hover': { opacity: 1 }
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEventClick(event);
-                                                }}
-                                            >
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                            <IconButton
-                                                size="small"
-                                                sx={{
-                                                    color: 'inherit',
-                                                    opacity: 0.7,
-                                                    '&:hover': {
-                                                        opacity: 1,
-                                                        color: 'error.main'
-                                                    }
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onDeleteEvent(event._id);
-                                                }}
-                                            >
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </>
-                                    }
-                                </Box>
-                            </EventItem>
-                        </Tooltip>
-                    ))}
+                                <Typography variant="caption" fontWeight="bold" display="block" color="error.light">
+                                    Overlapping Events:
+                                </Typography>
+                                {overlappingEvents.map((overlapEvent) => (
+                                    <Typography
+                                        key={overlapEvent._id}
+                                        variant="caption"
+                                        display="block"
+                                    >
+                                        {`${overlapEvent.eventTitle}: ${formatTime(overlapEvent.startTime)} - ${formatTime(overlapEvent.endTime)}`}
+                                    </Typography>
+                                ))}
+                            </Box>
+                        ) : `${event.eventTitle}: ${formatTime(event.startTime)} - ${formatTime(event.endTime)}`;
+                        return (
+                            <Tooltip
+                                key={event._id}
+                                title={tooltipContent}
+                                arrow
+                            >
+                                <EventComponent
+                                    style={getEventStyle(event)}
+                                    onClick={() => handleEventClick(event)}
+                                >
+                                    <Typography variant="caption" fontWeight="bold">
+                                        {event.eventTitle}
+                                    </Typography>
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        right: 2,
+                                        top: 2,
+                                        display: 'flex',
+                                        gap: '4px'
+                                    }}>
+                                        {(!event.isGoogleEvent && event.emailId == email) &&
+                                            <>
+                                                <IconButton
+                                                    size="small"
+                                                    sx={{
+                                                        color: 'inherit',
+                                                        opacity: 0.7,
+                                                        '&:hover': { opacity: 1 }
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEventClick(event);
+                                                    }}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    sx={{
+                                                        color: 'inherit',
+                                                        opacity: 0.7,
+                                                        '&:hover': {
+                                                            opacity: 1,
+                                                            color: 'error.main'
+                                                        }
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onDeleteEvent(event._id);
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </>
+                                        }
+                                    </Box>
+                                </EventComponent>
+                            </Tooltip>
+                        )
+                    })}
                 </Box>
             </Box>
 
@@ -412,7 +462,7 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
                     <Button onClick={validateAndSave} variant="contained" disabled={email != selectedEvent?.emailId}>Save Changes</Button>
                 </DialogActions>
             </Dialog>
-        </CalendarContainer>
+        </CalendarContainer >
     );
 };
 

@@ -153,7 +153,6 @@ const Dashboard = ({ email, userName }) => {
             fetchEvents();
 
         } catch (error) {
-            console.log(error.response.data.msg)
             if (error.status == 409) {
                 alert(`Clashing of event with ${error.response.data.msg} event. Not able to schedule new events`)
             } else

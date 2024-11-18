@@ -91,8 +91,6 @@ const Dashboard = ({ email, userName }) => {
         } catch (error) {
             if (error.status == 409) {
                 alert(`Clashing of event with ${error.response.data.msg} event. Not able to schedule new events`)
-                // alert('Clashing of events. Not able to schedule new events')
-                // console.log('Clashing of events. Not able to schedule new events')
             } else
                 console.log(error.response.data.message)
         }
@@ -297,16 +295,10 @@ const Dashboard = ({ email, userName }) => {
                     value={users.filter(user => selectedUsers.includes(user.label))}
                     onChange={handleUserSelect}
                     className="w-[1150px]"
-                    placeholder="Filter by Users..."
+                    placeholder="Search For People"
                     isClearable
                     onInputChange={handleUserRemove}
                 />
-                {/* <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={fetchEvents}
-                >
-                    Search
-                </button> */}
                 {
                     isFetchedFromGoogle ?
                         <button

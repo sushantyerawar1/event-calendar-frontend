@@ -12,8 +12,8 @@ const HomePage = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('userInfo'));
     if (!user) navigate('/login')
-    setEmail(user.emailId);
-    setUserName(user.userName);
+    setEmail(user?.emailId);
+    setUserName(user?.userName);
   }, []);
 
 

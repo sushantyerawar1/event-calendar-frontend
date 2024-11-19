@@ -18,7 +18,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-
 const NavigationBar = styled(Box)(({ theme }) => ({
     display: 'flex',
     justifyContent: 'space-between',

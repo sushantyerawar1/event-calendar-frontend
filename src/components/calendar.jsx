@@ -92,13 +92,6 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
     const [weekOffset, setWeekOffset] = useState(0);
 
 
-    const checkEventCollision = (event, allEvents) => {
-        return allEvents.some(otherEvent =>
-            otherEvent._id !== event._id &&
-            new Date(event.startTime) < new Date(otherEvent.endTime) &&
-            new Date(event.endTime) > new Date(otherEvent.startTime)
-        );
-    };
 
     const getEventStyle = (event) => {
         const startDate = new Date(event.startTime);
@@ -190,7 +183,6 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
             new Date(event.endTime) > new Date(otherEvent.startTime)
         );
     };
-
 
     const validateAndSave = () => {
 
@@ -462,7 +454,7 @@ const Calendar = ({ events, onEditEvent, onDeleteEvent, email, onWeekChange, cal
                     <Button onClick={validateAndSave} variant="contained" disabled={email != selectedEvent?.emailId}>Save Changes</Button>
                 </DialogActions>
             </Dialog>
-        </CalendarContainer >
+        </CalendarContainer>
     );
 };
 

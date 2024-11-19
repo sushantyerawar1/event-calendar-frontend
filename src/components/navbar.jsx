@@ -19,9 +19,9 @@ const Navbar = () => {
     return (
         <nav className="bg-gray-900 text-white py-4 px-6 flex justify-between items-center shadow-md ">
             <img
-                src="https://templatic.com/wp/wp-content/uploads/2019/07/what-is-events-calendar-copy.jpg"
+                src="https://cdn.prod.website-files.com/670a59845f0989763e175200/670a59845f0989763e1759f7_Shvasa%20Logo.png"
                 alt="Event Calendar Logo"
-                className="h-10 rounded-full"
+                className="h-10"
             />
             {
                 isLoggiedIn ? (
